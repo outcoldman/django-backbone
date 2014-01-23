@@ -30,8 +30,8 @@ class BackboneSite(object):
             base_url_name = '%s_%s' % (app_label, url_slug)
 
             urlpatterns += patterns('',
-                url(url_path_prefix + '$', view_class.as_view(), name=base_url_name),
-                url(url_path_prefix + '/(?P<id>\d+)$', view_class.as_view(),
+                url(url_path_prefix + '/$', view_class.as_view(), name=base_url_name),
+                url(url_path_prefix + '/(?P<id>\d+)/$', view_class.as_view(),
                     name=base_url_name + '_detail')
             )
         return urlpatterns
