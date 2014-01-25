@@ -26,7 +26,7 @@ class BackboneSite(object):
             app_label = view_class.model._meta.app_label
             url_slug = view_class.url_slug or view_class.model._meta.module_name
 
-            url_path_prefix = r'^%s/%s' % (app_label, url_slug)
+            url_path_prefix = r'^(?P<app_label>%s)/(?P<url_slug>%s)' % (app_label, url_slug)
             base_url_name = '%s_%s' % (app_label, url_slug)
 
             urlpatterns += patterns('',
