@@ -105,6 +105,10 @@ By default, ``django-backbone`` prevents add, update or delete requests unless t
 
 This can be changed by overriding the appropriate permission hooks (see section '``BackboneAPIView`` Options').
 
+To disable public (anonymous) access to all models by default you can specify global setting:
+    ::
+
+        BACKBONE_ALLOW_ANONYMOUS_ACCESS = False
 
 ``BackboneAPIView`` Options
 '''''''''''''''''''''''''''

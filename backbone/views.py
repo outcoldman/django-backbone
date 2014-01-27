@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -23,6 +24,9 @@ class BackboneAPIView(View):
     paginate_by = None  # The max number of objects per page (enables use of the ``page`` GET parameter).
     url_slug = None  # The slug to be used when constructing the url (and url name) for this view.
                      # Defaults to lowercase model name. Change this if you have multiple views for the same model.
+    anonymous_access = True # Set if anonymous access to current backbone API is allowed
+    if hasattr(settings, 'BACKBONE_ALLOW_ANONYMOUS_ACCESS'):
+        anonymous_access = settings.BACKBONE_ALLOW_ANONYMOUS_ACCESS
 
     def queryset(self, request, **kwargs):
         """
@@ -37,7 +41,9 @@ class BackboneAPIView(View):
         """
         Handles get requests for either the collection or an object detail.
         """
-        if id:
+        if not self.has_get_permission(request):
+            return HttpResponseForbidden(_('You do not have permission to perform this action.'))
+        elif id:
             obj = get_object_or_404(self.queryset(request, **kwargs), id=id)
             return self.get_object_detail(request, obj)
         else:
@@ -196,6 +202,12 @@ class BackboneAPIView(View):
         """
         obj.delete()
         return HttpResponse(status=204)
+
+    def has_get_permission(self, request):
+        """
+        Returns True if anonymous_access is allowed or user is authenticated
+        """
+        return self.anonymous_access or request.user.is_authenticated()
 
     def has_add_permission(self, request):
         """
