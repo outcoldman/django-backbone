@@ -21,6 +21,9 @@ class BackboneSite(object):
         except ImportError:  # For backwards compatibility with Django <=1.3
             from django.conf.urls.defaults import patterns, url
 
+        from django.conf import settings
+        url_end = '/$' if hasattr(settings, 'APPEND_SLASH') and settings.APPEND_SLASH else '$'
+
         urlpatterns = patterns('')
         for view_class in self._registry:
             app_label = view_class.model._meta.app_label
@@ -30,8 +33,8 @@ class BackboneSite(object):
             base_url_name = '%s_%s' % (app_label, url_slug)
 
             urlpatterns += patterns('',
-                url(url_path_prefix + '/$', view_class.as_view(), name=base_url_name),
-                url(url_path_prefix + '/(?P<id>\d+)/$', view_class.as_view(),
+                url(url_path_prefix + url_end, view_class.as_view(), name=base_url_name),
+                url(url_path_prefix + '/(?P<id>\d+)' + url_end, view_class.as_view(),
                     name=base_url_name + '_detail')
             )
         return urlpatterns
