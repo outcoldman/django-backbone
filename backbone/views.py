@@ -117,11 +117,11 @@ class BackboneAPIView(View):
             response = self.get_object_detail(request, obj)
             response.status_code = 201
 
-            url_name = 'backbone:%s_%s_detail' % (
-                self.model._meta.app_label,
-                self.url_slug or self.model._meta.module_name
-            )
-            response['Location'] = reverse(url_name, args=[obj.id])
+            app_label = self.model._meta.app_label
+            url_slug = self.url_slug or self.model._meta.module_name
+
+            url_name = 'backbone:%s_%s_detail' % (app_label, url_slug)
+            response['Location'] = reverse(url_name, args=[app_label, url_slug, obj.id]) 
             return response
         else:
             return HttpResponseBadRequest(self.json_dumps(form.errors), content_type='application/json')
@@ -176,7 +176,7 @@ class BackboneAPIView(View):
             defaults['fields'] = self.fields
         return modelform_factory(self.model, **defaults)(data=data, instance=instance)
 
-    def delete(self, request, id=None):
+    def delete(self, request, id=None, **kwargs):
         """
         Handles delete requests.
         """
