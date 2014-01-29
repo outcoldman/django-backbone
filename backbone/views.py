@@ -1,8 +1,10 @@
+import dateutil.parser
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import models
 from django.forms.models import modelform_factory
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
@@ -102,7 +104,7 @@ class BackboneAPIView(View):
         try:
             # backbone sends data in the body in json format
             # Conditional statement is for backwards compatibility with Django <= 1.3
-            data = json.loads(request.body if hasattr(request, 'body') else request.raw_post_data)
+            data = json.loads(request.body if hasattr(request, 'body') else request.raw_post_data, object_hook=self.json_datetime_parser)
         except ValueError:
             return HttpResponseBadRequest(_('Unable to parse JSON request body.'))
 
@@ -147,7 +149,7 @@ class BackboneAPIView(View):
         try:
             # backbone sends data in the body in json format
                 # Conditional statement is for backwards compatibility with Django <= 1.3
-            data = json.loads(request.body if hasattr(request, 'body') else request.raw_post_data)
+            data = json.loads(request.body if hasattr(request, 'body') else request.raw_post_data, object_hook=self.json_datetime_parser)
         except ValueError:
             return HttpResponseBadRequest(_('Unable to parse JSON request body.'))
 
@@ -289,3 +291,11 @@ class BackboneAPIView(View):
             # Use JS strings to represent Python Decimal instances (ticket #16850)
             params.update({'use_decimal': False})
         return json.dumps(data, cls=DjangoJSONEncoder, **params)
+
+    def json_datetime_parser(self, dct):
+        for key, value in dct.items():
+            if value is not None:
+                for field in self.model._meta.fields:
+                    if field.name == key and isinstance(field, models.DateField):
+                        dct[key] = dateutil.parser.parse(value)
+        return dct
